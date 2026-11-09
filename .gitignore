@@ -1,0 +1,14 @@
+# Virtual environment and caches
+.venv/
+__pycache__/
+*.pyc
+
+# Local settings and tool output
+settings.json
+.playwright-mcp/
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
