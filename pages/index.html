@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<title>Spelling Trainer</title>
+<meta name="description" content="Train your ear for phone numbers, postcodes, names, dates and money. Listen, type, check. Free and open source.">
+<meta property="og:title" content="Spelling Trainer">
+<meta property="og:description" content="Train your ear for phone numbers, postcodes, names, dates and money.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%8E%A7%3C/text%3E%3C/svg%3E">
+<link rel="preload" as="image" href="images/quiz.webp" type="image/webp" fetchpriority="high">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+:root{
+  --ink:#1d1d1f; --mute:#6e6e73; --soft:#f5f5f7;
+  --blue:#2997ff; --violet:#8b5cf6; --pink:#ec4899; --amber:#f59e0b; --green:#10b981; --cyan:#06b6d4;
+  --grad:linear-gradient(90deg,#2997ff,#8b5cf6 45%,#ec4899);
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;scroll-padding-top:60px}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,system-ui,sans-serif;
+  color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:hidden;text-rendering:optimizeLegibility}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%;height:auto}
+h1,h2,.sub,.head p{text-wrap:balance}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.gt{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* scroll progress */
+#prog{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;background:var(--grad);transform:scaleX(0);transform-origin:0 50%;will-change:transform}
+
+/* nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:50;height:52px;display:flex;align-items:center;
+  background:rgba(0,0,0,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;width:100%}
+nav b{color:#f5f5f7;font-weight:600;font-size:15px;letter-spacing:-.2px}
+nav .links{display:flex;gap:26px;align-items:center}
+nav a{color:#d2d2d7;font-size:13px;transition:color .2s}
+nav a:hover{color:#fff}
+nav .cta{background:#fff;color:#000;padding:6px 14px;border-radius:99px;font-weight:600;transition:transform .2s var(--ease)}
+nav .cta:hover{color:#000;transform:scale(1.05)}
+@media(max-width:640px){nav .links a:not(.cta){display:none}}
+
+/* hero */
+.hero{background:#000;color:#f5f5f7;text-align:center;padding:140px 0 0;position:relative;overflow:hidden}
+.glow{position:absolute;inset:-25% -15% auto -15%;height:95%;pointer-events:none;will-change:transform;
+  background:radial-gradient(38% 48% at 22% 32%,#2997ff40,transparent 70%),
+             radial-gradient(38% 48% at 78% 26%,#ec489940,transparent 70%),
+             radial-gradient(42% 48% at 50% 62%,#8b5cf62e,transparent 70%);
+  animation:drift 22s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(-2%,0,0) scale(1)}to{transform:translate3d(2%,3%,0) scale(1.08)}}
+.hero .wrap{position:relative}
+.eyebrow{font-size:21px;font-weight:600;letter-spacing:-.2px}
+h1{font-size:clamp(44px,9vw,92px);line-height:1.03;font-weight:700;letter-spacing:-.035em;margin:10px 0 22px}
+.sub{font-size:clamp(19px,2.6vw,28px);line-height:1.3;color:#a1a1a6;max-width:760px;margin:0 auto;letter-spacing:-.2px}
+.btns{display:flex;gap:14px;justify-content:center;margin:34px 0 0;flex-wrap:wrap}
+.btn{padding:13px 26px;border-radius:99px;font-size:17px;font-weight:500;transition:transform .25s var(--ease),background .2s,box-shadow .25s}
+.btn:hover{transform:translateY(-2px)}
+.btn.p{background:#2997ff;color:#fff;box-shadow:0 8px 28px #2997ff44}.btn.p:hover{background:#4aa8ff;box-shadow:0 12px 34px #2997ff66}
+.btn.s{border:1px solid #2997ff;color:#2997ff}.btn.s:hover{background:#2997ff22}
+.stage{perspective:1400px;margin-top:70px}
+.frame{border-radius:14px 14px 0 0;background:#1c1c1e;box-shadow:0 -10px 80px #2997ff33,0 30px 90px #0009;
+  overflow:hidden;max-width:960px;margin:0 auto;will-change:transform;
+  transform:rotateX(var(--rx,14deg)) scale(var(--sc,.94));transform-origin:center bottom}
+.bar{height:34px;background:#2c2c2e;display:flex;align-items:center;gap:7px;padding:0 14px}
+.bar i{width:11px;height:11px;border-radius:50%}
+.bar i:nth-child(1){background:#ff5f57}.bar i:nth-child(2){background:#febc2e}.bar i:nth-child(3){background:#28c840}
+
+/* marquee */
+.marq{background:#000;color:#6e6e73;border-top:1px solid #1d1d1f;overflow:hidden;padding:22px 0;white-space:nowrap;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.marq div{display:inline-flex;gap:42px;padding-right:42px;animation:slide 38s linear infinite;
+  font:600 18px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.marq b{color:#a1a1a6;font-weight:600}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* statement */
+.statement{background:#000;color:#f5f5f7;padding:120px 0}
+.statement p{font-size:clamp(30px,5.4vw,60px);line-height:1.12;font-weight:700;letter-spacing:-.03em;max-width:980px;margin:0 auto;text-wrap:pretty}
+.statement .w{opacity:.2;transition:opacity .3s}
+.statement .w.on{opacity:1}
+
+/* stats */
+.stats{background:#000;color:#f5f5f7;padding:0 0 120px}
+.stats .row{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
+.stats strong{display:block;font-size:clamp(48px,8vw,88px);line-height:1;font-weight:700;letter-spacing:-.04em}
+.stats span{display:block;color:#a1a1a6;font-size:16px;margin-top:10px}
+@media(max-width:700px){.stats .row{grid-template-columns:1fr 1fr;row-gap:44px}}
+
+/* sections */
+section{padding:130px 0}
+.head{text-align:center;max-width:820px;margin:0 auto 64px}
+.head h2{font-size:clamp(34px,6vw,64px);line-height:1.06;font-weight:700;letter-spacing:-.03em}
+.head p{font-size:clamp(18px,2.2vw,24px);color:var(--mute);margin-top:18px;line-height:1.35}
+.dark{background:#000;color:#f5f5f7}.dark .head p{color:#a1a1a6}
+.light{background:var(--soft)}
+
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:#fff;border-radius:26px;padding:34px 30px 30px;min-height:290px;display:flex;flex-direction:column;
+  border:2px solid color-mix(in srgb,var(--c) 28%,white);transition:transform .35s var(--ease),border-color .3s,box-shadow .35s}
+.card:hover{transform:translateY(-8px);border-color:var(--c);box-shadow:0 26px 56px color-mix(in srgb,var(--c) 24%,transparent)}
+.card .ic{font-size:44px;line-height:1;transition:transform .35s var(--ease)}
+.card:hover .ic{transform:scale(1.12) rotate(-4deg)}
+.card h3{font-size:25px;font-weight:700;letter-spacing:-.02em;margin:18px 0 8px}
+.card p{color:var(--mute);font-size:16px;line-height:1.4}
+.card code{margin-top:auto;padding-top:20px;font:600 15px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--c)}
+@media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.card{min-height:0}}
+
+/* showcase */
+.show{text-align:center}
+.show .frame{border-radius:14px;max-width:880px;transform:none;will-change:auto;box-shadow:0 30px 80px #0003}
+.dark.show .frame{box-shadow:0 30px 110px #8b5cf655}
+.tall .frame{max-width:760px}
+.tag{font-size:17px;font-weight:600;margin-bottom:12px;display:inline-block}
+.t1{color:var(--blue)}.t2{color:var(--violet)}.t3{color:var(--green)}
+
+/* features */
+.feat{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.tile{background:#1c1c1e;border-radius:22px;padding:28px 24px;min-height:210px;position:relative;overflow:hidden;
+  transition:transform .35s var(--ease),background .3s}
+.tile:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--grad);opacity:0;transition:opacity .3s}
+.tile:hover{transform:translateY(-6px);background:#242426}
+.tile:hover:before{opacity:1}
+.tile .ic{font-size:30px}
+.tile h4{font-size:19px;font-weight:600;margin:14px 0 8px;letter-spacing:-.01em}
+.tile p{color:#a1a1a6;font-size:15px;line-height:1.4}
+@media(max-width:900px){.feat{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.feat{grid-template-columns:1fr}.tile{min-height:0}}
+
+/* voices */
+.chips{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:820px;margin:0 auto}
+.chips span{padding:12px 20px;border-radius:99px;background:#fff;border:1px solid #d2d2d7;font-size:17px;font-weight:500;
+  transition:transform .25s var(--ease),border-color .2s,box-shadow .25s}
+.chips span:hover{transform:translateY(-3px);border-color:var(--violet);box-shadow:0 10px 24px #8b5cf622}
+.chips small{color:var(--mute);font-weight:400}
+
+/* get started */
+.code{background:#1d1d1f;color:#f5f5f7;border-radius:20px;padding:28px 30px;max-width:720px;margin:0 auto;text-align:left;
+  font:15px/1.9 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-x:auto;box-shadow:0 24px 60px #0003;white-space:nowrap}
+.code .c{color:#86868b}.code .g{color:#30d158}
+.note{text-align:center;color:var(--mute);margin-top:22px;font-size:16px}
+
+footer{background:var(--soft);color:var(--mute);font-size:13px;padding:34px 0;text-align:center;line-height:1.7}
+footer a{color:#0066cc}footer a:hover{text-decoration:underline}
+
+/* reveal (only when JS is on, so content never stays hidden) */
+.js .rv{opacity:0;transform:translate3d(0,36px,0);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.js .rv.in{opacity:1;transform:none}
+.rv.d1{transition-delay:.08s}.rv.d2{transition-delay:.16s}.rv.d3{transition-delay:.24s}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .js .rv{opacity:1;transform:none;transition:none}
+  .frame{transform:none!important}
+  .glow,.marq div{animation:none}
+  .statement .w{opacity:1}
+}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<nav><div class="wrap">
+  <b>🎧 Spelling Trainer</b>
+  <div class="links">
+    <a href="#types">Practice</a><a href="#screens">Screens</a><a href="#features">Features</a>
+    <a class="cta" href="#start">Get started</a>
+  </div>
+</div></nav>
+
+<header class="hero">
+  <div class="glow"></div>
+  <div class="wrap">
+    <p class="eyebrow rv">Spelling Trainer</p>
+    <h1 class="rv d1">Hear it.<br><span class="gt">Type it.</span> Nail it.</h1>
+    <p class="sub rv d2">Phone numbers. Postcodes. Names. Dates. Money. Train your ear for the details that fly by in real conversations.</p>
+    <div class="btns rv d3">
+      <a class="btn p" href="#start">Get started</a>
+      <a class="btn s" href="https://github.com/bitgearlabs/spelling-trainer">View on GitHub &rsaquo;</a>
+    </div>
+    <div class="stage">
+      <div class="frame" id="heroFrame">
+        <div class="bar"><i></i><i></i><i></i></div>
+        <img src="images/quiz.webp" width="1100" height="900" fetchpriority="high" decoding="async"
+             alt="Spelling Trainer practice screen showing a correct answer">
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="marq" aria-hidden="true">
+  <div>
+    <span>07911 123 456</span><b>·</b><span>SW1A 2AA</span><b>·</b><span>£1,250.50</span><b>·</b><span>22 March</span><b>·</b><span>2.5 km</span><b>·</b><span>Wolverhampton Road</span><b>·</b><span>BK-48291</span><b>·</b><span>31st</span><b>·</b>
+    <span>07911 123 456</span><b>·</b><span>SW1A 2AA</span><b>·</b><span>£1,250.50</span><b>·</b><span>22 March</span><b>·</b><span>2.5 km</span><b>·</b><span>Wolverhampton Road</span><b>·</b><span>BK-48291</span><b>·</b><span>31st</span><b>·</b>
+  </div>
+</div>
+
+<div class="statement"><div class="wrap">
+  <p id="statement">Nobody slows down to spell things out. Numbers fly by. Names arrive letter by letter. Spelling Trainer turns those tricky moments into something you can practise, and master.</p>
+</div></div>
+
+<div class="stats"><div class="wrap"><div class="row">
+  <div class="rv"><strong class="gt">6</strong><span>practice types</span></div>
+  <div class="rv d1"><strong class="gt">9</strong><span>natural voices</span></div>
+  <div class="rv d2"><strong class="gt">3</strong><span>accents</span></div>
+  <div class="rv d3"><strong class="gt">0</strong><span>accounts needed</span></div>
+</div></div></div>
+
+<section class="light" id="types">
+  <div class="wrap">
+    <div class="head rv"><h2>Six ways to train<br>your ear.</h2>
+      <p>Every question is generated fresh. No two sessions are the same.</p></div>
+    <div class="grid">
+      <div class="card rv" style="--c:var(--blue)"><span class="ic">📞</span><h3>Phone numbers</h3><p>Digits, “double seven”, “triple zero”, “oh” or “zero”.</p><code>07911 123 456</code></div>
+      <div class="card rv d1" style="--c:var(--violet)"><span class="ic">🏷️</span><h3>Postcodes &amp; codes</h3><p>Letters and digits, read one by one.</p><code>SW1A 2AA</code></div>
+      <div class="card rv d2" style="--c:var(--pink)"><span class="ic">🔤</span><h3>Names &amp; streets</h3><p>Spelled letter by letter, like on the phone.</p><code>Wolverhampton Road</code></div>
+      <div class="card rv" style="--c:var(--amber)"><span class="ic">📅</span><h3>Dates &amp; ordinals</h3><p>Weekday, day and month. First, second, thirty-first.</p><code>Tuesday 22 March</code></div>
+      <div class="card rv d1" style="--c:var(--green)"><span class="ic">💷</span><h3>Currency</h3><p>Pounds, dollars and euros, with pence and cents.</p><code>£1,250.50</code></div>
+      <div class="card rv d2" style="--c:var(--cyan)"><span class="ic">📏</span><h3>Measurements</h3><p>Distance, weight, volume, temperature and percent.</p><code>2.5 km · 30 cm</code></div>
+    </div>
+  </div>
+</section>
+
+<section class="dark show" id="screens">
+  <div class="wrap">
+    <div class="head rv"><span class="tag t1">Choose</span><h2>Your practice.<br>Your voice.</h2>
+      <p>Pick what to train, then pick who reads it to you.</p></div>
+    <div class="tall rv"><div class="frame"><div class="bar"><i></i><i></i><i></i></div>
+      <img src="images/setup.webp" width="1085" height="1344" loading="lazy" decoding="async"
+           alt="Setup screen with six practice types and voice settings"></div></div>
+  </div>
+</section>
+
+<section class="light show">
+  <div class="wrap">
+    <div class="head rv"><span class="tag t2">Listen</span><h2>One tap to hear.<br>One line to answer.</h2>
+      <p>Type what you heard. Press Enter. Know straight away.</p></div>
+    <div class="rv"><div class="frame"><div class="bar"><i></i><i></i><i></i></div>
+      <img src="images/quiz.webp" width="1100" height="900" loading="lazy" decoding="async"
+           alt="Practice screen with a correct answer"></div></div>
+  </div>
+</section>
+
+<section class="dark show">
+  <div class="wrap">
+    <div class="head rv"><span class="tag t3">Review</span><h2>See where you<br>need more practice.</h2>
+      <p>A clear score and a breakdown for every type.</p></div>
+    <div class="rv"><div class="frame" style="max-width:640px"><div class="bar"><i></i><i></i><i></i></div>
+      <img src="images/results.webp" width="860" height="460" loading="lazy" decoding="async"
+           alt="Results screen with score and breakdown by type"></div></div>
+  </div>
+</section>
+
+<section class="light" id="voices">
+  <div class="wrap">
+    <div class="head rv"><h2>Voices that sound<br><span class="gt">human.</span></h2>
+      <p>Natural neural voices in British, Australian and American accents. Or use Google or offline voices.</p></div>
+    <div class="chips rv">
+      <span>Sonia <small>British</small></span><span>Ryan <small>British</small></span><span>Libby <small>British</small></span>
+      <span>Natasha <small>Australian</small></span><span>William <small>Australian</small></span>
+      <span>Ava <small>American</small></span><span>Emma <small>American</small></span>
+      <span>Andrew <small>American</small></span><span>Brian <small>American</small></span>
+    </div>
+  </div>
+</section>
+
+<section class="dark" id="features">
+  <div class="wrap">
+    <div class="head rv"><h2>Made for<br>real practice.</h2></div>
+    <div class="feat">
+      <div class="tile rv"><span class="ic">🎯</span><h4>Exam mode</h4><p>Listen only once, just like the real thing.</p></div>
+      <div class="tile rv d1"><span class="ic">🔁</span><h4>Never repeats</h4><p>Questions are random and avoid your recent answers.</p></div>
+      <div class="tile rv d2"><span class="ic">🧩</span><h4>Hard mode</h4><p>“Oh” could be the letter O or the digit zero. Can you tell?</p></div>
+      <div class="tile rv d3"><span class="ic">🗣️</span><h4>Double &amp; triple</h4><p>Say it the British way, or digit by digit.</p></div>
+      <div class="tile rv"><span class="ic">⏱️</span><h4>Your speed</h4><p>Slow it down or speed it up, from 0.6× to 1.3×.</p></div>
+      <div class="tile rv d1"><span class="ic">🔎</span><h4>Letter check</h4><p>Hear exactly how every letter and digit sounds.</p></div>
+      <div class="tile rv d2"><span class="ic">⚡</span><h4>Instant feedback</h4><p>Right or wrong in a heartbeat, with the correct answer.</p></div>
+      <div class="tile rv d3"><span class="ic">🔒</span><h4>Private</h4><p>No account. Runs on your own computer.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="light" id="start">
+  <div class="wrap">
+    <div class="head rv"><h2>Ready in<br>three lines.</h2>
+      <p>Free and open source. You only need Python.</p></div>
+    <div class="code rv"><span class="c"># get the code</span><br><span class="g">$</span> git clone https://github.com/bitgearlabs/spelling-trainer<br><span class="c"># install</span><br><span class="g">$</span> pip install -r requirements.txt<br><span class="c"># run</span><br><span class="g">$</span> python server.py</div>
+    <p class="note rv">Then open <b>http://spelling.localhost:8765</b> in your browser.</p>
+    <div class="btns rv" style="margin-top:34px">
+      <a class="btn p" href="https://github.com/bitgearlabs/spelling-trainer">Get it on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap">
+  Spelling Trainer · Released under the <a href="https://github.com/bitgearlabs/spelling-trainer/blob/main/LICENSE">Apache License 2.0</a><br>
+  <a href="https://github.com/bitgearlabs/spelling-trainer/issues">Report a problem or share an idea</a>
+</div></footer>
+
+<script>
+(function(){
+  var rv=document.querySelectorAll('.rv');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+    rv.forEach(function(el){io.observe(el)});
+  }else{rv.forEach(function(el){el.classList.add('in')})}
+
+  var hf=document.getElementById('heroFrame'), hero=document.querySelector('.hero'),
+      st=document.getElementById('statement'), bar=document.getElementById('prog'),
+      reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  st.innerHTML=st.textContent.trim().split(/\s+/).map(function(w){return '<span class="w">'+w+'</span>'}).join(' ');
+  var ws=[].slice.call(st.querySelectorAll('.w')), shown=0, vh=innerHeight, ticking=false;
+
+  // only do work for the part of the page that is on screen
+  var heroOn=true, stOn=false;
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(e){heroOn=e[0].isIntersecting;frame()}).observe(hero);
+    new IntersectionObserver(function(e){stOn=e[0].isIntersecting;frame()},{rootMargin:'20% 0px'}).observe(st);
+  }else{stOn=true}
+
+  function frame(){
+    ticking=false;
+    var y=scrollY, max=document.documentElement.scrollHeight-vh;
+    bar.style.transform='scaleX('+(max>0?Math.min(1,y/max):0)+')';
+    if(heroOn&&!reduce){
+      var p=Math.min(1,Math.max(0,y/(vh*.55)));
+      hf.style.setProperty('--rx',(14*(1-p)).toFixed(2)+'deg');
+      hf.style.setProperty('--sc',(.94+.06*p).toFixed(3));
+    }
+    if(stOn){
+      var r=st.getBoundingClientRect();
+      var q=Math.min(1,Math.max(0,(vh*.85-r.top)/(r.height+vh*.35)));
+      var n=Math.round(q*ws.length);
+      if(n!==shown){for(var i=Math.min(n,shown);i<Math.max(n,shown);i++)ws[i].classList.toggle('on',i<n);shown=n}
+    }
+  }
+  function req(){if(!ticking){ticking=true;requestAnimationFrame(frame)}}
+  addEventListener('scroll',req,{passive:true});
+  addEventListener('resize',function(){vh=innerHeight;req()});
+  frame();
+})();
+</script>
+</body>
+</html>
